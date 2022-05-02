@@ -1,7 +1,6 @@
 data = load(file="37853-0001-Data.rda")
 colnames(da37853.0001)
 
-
 demographics = c("SURV_LANG",
                  "GENDER", 
                  "AGE7", 
@@ -24,9 +23,16 @@ artistic = c("Q7A",
              "Q7N",
              "Q7P")
 
-da37853.0001[artistic]
+data_factor = da37853.0001[c(demographics, artistic)]
 
-# lbls <- sort(levels(da99999.0001$MYVAR))
-# lbls <- (sub("^\\([0-9]+\\) +(.+$)", "\\1", lbls))
-# da99999.0001$MYVAR <- as.numeric(sub("^\\(0*([0-9]+)\\).+$", "\\1", da99999.0001$MYVAR))
-# da99999.0001$MYVAR <- add.value.labels(da99999.0001$MYVAR, lbls)
+# What are the types of each column?
+str(data_factor)
+
+# Missing Data Evaluation
+head(rowSums(is.na(data_factor)))
+colSums(is.na(data_factor))
+
+# Make NA's 2's (No)
+data_factor[is.na(data_factor)] = "(2) No"
+
+data_factor
