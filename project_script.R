@@ -53,21 +53,14 @@ dfList = lapply(dfList, function(df) {
 # clustering algo
 install.packages('klaR')
 library(klaR)
-two_clusters = kmodes(dfList$data_factor_na_is_no[demographics], 10, iter.max = 10, weighted = FALSE, fast = TRUE)
+num_clusters = 10
+clusters = kmodes(dfList$data_factor_na_is_no[demographics], num_clusters, iter.max = 1000, weighted = FALSE, fast = TRUE)
+for(i in 1:num_clusters) {
+  im = mean(dfList$data_factor_na_is_no[two_clusters$cluster == i, ]$ART_SCORE, na.rm=TRUE)
+  print(im)
+}
 
-plot(jitter(dfList$data_factor_na_is_no[demographics]), col = two_clusters)
-points(cl$modes, col = 1:5, pch = 8)
-# }
 
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 1, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 2, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 3, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 4, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 5, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 6, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 7, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 8, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 9, ]$ART_SCORE, na.rm=TRUE)
-mean(dfList$data_factor_na_is_no[unlist(two_clusters) == 10, ]$ART_SCORE, na.rm=TRUE)
+
 
 
