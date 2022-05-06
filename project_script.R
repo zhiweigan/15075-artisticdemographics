@@ -23,16 +23,29 @@ artistic = c("Q7A",
              "Q7N",
              "Q7P")
 
-data_factor = da37853.0001[c(demographics, artistic)]
+data_factor_no_fill = da37853.0001[c(demographics, artistic)]
 
 # What are the types of each column?
-str(data_factor)
+str(data_factor_no_fill)
 
 # Missing Data Evaluation
 head(rowSums(is.na(data_factor)))
 colSums(is.na(data_factor))
 
 # Make NA's 2's (No)
-data_factor[is.na(data_factor)] = "(2) No"
+data_factor_na_is_no = data.frame(data_factor)
+data_factor_na_is_no[is.na(data_factor)] = "(2) No"
+data_factor_na_is_no
 
-data_factor
+# compute artistic score for several dataframes
+dfList = list(data_factor_no_fill, data_factor_na_is_no)
+dfList <- list(data_factor_no_fill=data_factor_no_fill, 
+               data_factor_na_is_no=data_factor_na_is_no)
+dfList = lapply(dfList, function(df) {
+  df[artistic] = sapply(df[artistic],as.numeric)
+  df[artistic] = df[artistic] - 1
+  df$ART_SCORE = rowMeans(subset(df, select = artistic), na.rm = TRUE)
+  df
+})
+
+dfList$data_factor_no_fill
