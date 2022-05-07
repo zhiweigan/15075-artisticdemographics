@@ -45,21 +45,42 @@ dfList <- list(data_factor_no_fill=data_factor_no_fill,
                data_factor_na_is_no=data_factor_na_is_no)
 dfList = lapply(dfList, function(df) {
   df[artistic] = sapply(df[artistic],as.numeric)
-  df[artistic] = df[artistic] - 1
+  df[artistic] = 1 - (df[artistic] - 1)
   df$ART_SCORE = rowMeans(subset(df, select = artistic), na.rm = TRUE)
   df
 })
+
+boxplot(dfList$data_factor_na_is_no$ART_SCORE,
+        main = "Artistic Score Box Plot",
+        xlab = "Artistic Score",
+        horizontal = TRUE,
+        notch = FALSE
+)
+
+hist(dfList$data_factor_na_is_no$ART_SCORE,
+     main = "Artistic Score Histogram",
+     xlab = "Artistic Score")
+hist(dfList$data_factor_no_fill$ART_SCORE,
+     main = "Artistic Score Histogram",
+     xlab = "Artistic Score")
 
 # clustering algo
 install.packages('klaR')
 library(klaR)
 num_clusters = 10
+clusters = kmodes(dfList$data_factor_no_fill[demographics], num_clusters, iter.max = 1000, weighted = FALSE, fast = TRUE)
+print("No Fill")
+for(i in 1:num_clusters) {
+  im = mean(dfList$data_factor_no_fill[two_clusters$cluster == i, ]$ART_SCORE, na.rm=TRUE)
+  print(im)
+}
+
 clusters = kmodes(dfList$data_factor_na_is_no[demographics], num_clusters, iter.max = 1000, weighted = FALSE, fast = TRUE)
+print("NA is No")
 for(i in 1:num_clusters) {
   im = mean(dfList$data_factor_na_is_no[two_clusters$cluster == i, ]$ART_SCORE, na.rm=TRUE)
   print(im)
 }
-
 
 
 
