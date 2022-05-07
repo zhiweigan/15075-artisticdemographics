@@ -39,6 +39,10 @@ data_factor_na_is_no = data.frame(data_factor)
 data_factor_na_is_no[is.na(data_factor)] = "(2) No"
 data_factor_na_is_no
 
+# Impute using KNN
+install.packages("DMwR")
+data_factor_knn_impute = 
+
 # compute artistic score for several dataframes
 dfList = list(data_factor_no_fill, data_factor_na_is_no)
 dfList <- list(data_factor_no_fill=data_factor_no_fill, 
@@ -67,7 +71,7 @@ hist(dfList$data_factor_no_fill$ART_SCORE,
 # clustering algo
 install.packages('klaR')
 library(klaR)
-num_clusters = 10
+num_clusters = 2
 clusters = kmodes(dfList$data_factor_no_fill[demographics], num_clusters, iter.max = 1000, weighted = FALSE, fast = TRUE)
 print("No Fill")
 for(i in 1:num_clusters) {
