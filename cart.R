@@ -108,19 +108,24 @@ CART1 = rpart(ART_INDICATOR_2 ~
 CART1$cptable[which.min(CART1$cptable[,"xerror"]),"CP"]
 
 printcp(CART1)
-# par(xpd = NA) # Avoid clipping the text in some device
-# plotcp(CART1)
 summary(CART1)
 prp(CART1, type = 2, extra = 2)
 rpart.plot(CART1)
 text(CART1, digits = 3)
 post(CART1)
 
-pruned <- prune(CART1, cp=0.003814262)
 
-predicted.classes <- pruned %>% predict(test.data, type = "class")
+pruned <- prune(CART1, cp=0.003814262)
+predicted.classes <- pruned %>% predict(test.data, type = "class", probability=TRUE)
 head(predicted.classes)
 mean(predicted.classes == test.data$ART_INDICATOR_2)
+
+library(pROC)
+roc_qda=roc(response=test.data$ART_INDICATOR_2, predictor= factor(predicted.classes, 
+                                                        ordered = TRUE), plot=TRUE)
+plot(roc_qda, col="red", main="ROC curve QDA")
+auc_qda<-auc(roc_qda)
+auc_qda
 
 table(predicted.classes, test.data$ART_INDICATOR_2)
 retrieved = 279 + 38
@@ -153,11 +158,33 @@ library(randomForest)
 set.seed(0)
 fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=train.data)
 print(fit) # view results
-importance(fit) # importance of each 
+imp = importance(fit)
+str(imp)
+
+# make dataframe from importance() output
+feat_imp_df <- importance(fit) %>% 
+  data.frame() %>% 
+  mutate(feature = row.names(.)) 
+
+# plot dataframe
+library(ggplot2)
+ggplot(feat_imp_df, aes(x = reorder(feature, MeanDecreaseGini), 
+                        y = MeanDecreaseGini)) +
+  geom_bar(stat='identity') +
+  coord_flip() +
+  theme_classic() +
+  scale_x_discrete(labels= c("Age", "Gender", "Education", "Survey Language")) + 
+  labs(
+    x     = "Feature",
+    y     = "Importance",
+    title = "Feature Importance: Random Forest on Artistic Indicators"
+  )
+
+barplot(importance(fit), ) # importance of each 
 plot(fit,  main="Random Forest Model Error")
 
 
-install.packages("caret")
+# install.packages("caret")
 library(caret)
 p1 <- predict(fit, test.data)
 confusionMatrix(p1, as.factor(test.data$ART_INDICATOR_2))
