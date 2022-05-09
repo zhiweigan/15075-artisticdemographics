@@ -63,6 +63,169 @@ dfList = lapply(dfList, function(df) {
   df
 })
 
+# Ananya's CV Model
+y <- dfList$data_factor_na_is_no$ART_SCORE
+x <- data.matrix(dfList$data_factor_na_is_no[, demographics])
+x
+
+# install.packages("glmnet")
+library(glmnet)
+model <- glmnet(x, y, alpha=1)
+summary(model)
+
+cv_model <- cv.glmnet(x, y, alpha=1)
+best_lambda <- cv_model$lambda.min
+best_lambda
+
+plot(cv_model)
+
+#We see that there are high correlation values between variables, so consider a
+#logistic-regression approach
+#Code for the regression, which is used as an approach to regression when our
+#dependent variable is dichotomous or binary
+#make this example reproducible
+set.seed(1)
+
+
+data = dfList$data_factor_na_is_no
+dfList$data_factor_na_is_no$ART_INDICATOR_2 <- as.factor(dfList$data_factor_na_is_no$ART_INDICATOR_2)                              # Convert character vector to factor
+#Use 70% of dataset as training set and remaining 30% as testing set
+sample <- sample(c(TRUE, FALSE), nrow(data), replace=TRUE, prob=c(0.7,0.3))
+train <- data[sample, ]
+test <- data[!sample, ] 
+
+train$ART_INDICATOR_2 = as.factor(train$ART_INDICATOR_2)
+str(train)
+
+library(pROC)
+#fit logistic regression model
+model <- glm(ART_INDICATOR_2 ~ (SURV_LANG + GENDER + AGE7 + EDUC4)^2, family="binomial", data=train)
+summary(model)
+predicted <- predict(model, test, type="response")
+auc(test$ART_INDICATOR_2, predicted)
+
+#fit a linear regression with the same data points
+lm_data = lm(ART_SCORE ~ (SURV_LANG + GENDER + AGE7 + EDUC4)^2, data=data)
+summary(lm_data)
+predicted <- predict(lm_data, test, type="response")
+auc(test$ART_SCORE, predicted)
+
+
+# https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels
+# Core wrapping function
+wrap.it <- function(x, len)
+{ 
+  sapply(x, function(y) paste(strwrap(y, len), 
+                              collapse = "\n"), 
+         USE.NAMES = FALSE)
+}
+
+
+# Call this function with a list or vector
+wrap.labels <- function(x, len)
+{
+  if (is.list(x))
+  {
+    lapply(x, wrap.it, len)
+  } else {
+    wrap.it(x, len)
+  }
+}
+
+
+demographics = c("SURV_LANG",
+                 "GENDER", 
+                 "AGE7", 
+                 "RACETHNICITY",
+                 "EDUC4",
+                 "EMPLOY",
+                 "INCOME",
+                 "REGION4",
+                 "INTERNET")
+
+boxplot(ART_SCORE~SURV_LANG,
+        data=dfList$data_factor_no_fill,
+        main = "Survey Language: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$SURV_LANG)
+)
+
+boxplot(ART_SCORE~GENDER,
+        data=dfList$data_factor_no_fill,
+        main = "Gender: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$GENDER)
+)
+
+boxplot(ART_SCORE~AGE7,
+        data=dfList$data_factor_no_fill,
+        main = "Age: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$AGE7)
+)
+
+boxplot(ART_SCORE~RACETHNICITY,
+        data=dfList$data_factor_no_fill,
+        main = "Race/Ethnicity: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$RACETHNICITY)
+)
+
+boxplot(ART_SCORE~EDUC4,
+        data=dfList$data_factor_no_fill,
+        main = "Education: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$EDUC4)
+)
+
+boxplot(ART_SCORE~EMPLOY,
+        data=dfList$data_factor_no_fill,
+        main = "Employment: Artistic Score Box Plot",
+        xlab = "Response",
+        ylab = "Artistic Score",
+        names = c("Working", "Self-Employed", "Temp Layoff", "Looking for Work", "Retired", "Disabled", "Other"),
+        notch = FALSE
+)
+
+boxplot(ART_SCORE~INCOME,
+        data=dfList$data_factor_no_fill,
+        main = "Income: Artistic Score Box Plot",
+        xlab = "",
+        ylab = "Artistic Score",
+        cex.axis = 0.4,
+        las = 2,
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$INCOME)
+)
+
+boxplot(ART_SCORE~REGION4,
+        data=dfList$data_factor_no_fill,
+        main = "Region: Artistic Score Box Plot",
+        xlab = "",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$REGION4)
+)
+
+boxplot(ART_SCORE~INTERNET,
+        data=dfList$data_factor_no_fill,
+        main = "Internet: Artistic Score Box Plot",
+        xlab = "",
+        ylab = "Artistic Score",
+        notch = FALSE,
+        names = levels(dfList$data_factor_no_fill$INTERNET)
+)
+
 boxplot(dfList$data_factor_na_is_no$ART_SCORE,
         main = "Artistic Score Box Plot",
         xlab = "Artistic Score",
