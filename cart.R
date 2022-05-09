@@ -103,7 +103,7 @@ CART1 = rpart(ART_INDICATOR_2 ~
                 REGION4, 
               method = "class", 
               data = train.data,
-              control=rpart.control(minsplits = 2, minbucket=5, cp=0.003814262))
+              control=rpart.control(minsplits = 2, minbucket=5, cp=0.006529851))
 
 CART1$cptable[which.min(CART1$cptable[,"xerror"]),"CP"]
 
@@ -151,7 +151,14 @@ cor(as.numeric(dfList$data_factor_na_is_no$AGE7), as.numeric(dfList$data_factor_
 # install.packages("randomForest")
 library(randomForest)
 set.seed(0)
-fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=dfList$data_factor_na_is_no)
+fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=train.data)
 print(fit) # view results
 importance(fit) # importance of each 
-plot(fit)
+plot(fit,  main="Random Forest Model Error")
+
+
+install.packages("caret")
+library(caret)
+p1 <- predict(fit, test.data)
+confusionMatrix(p1, as.factor(test.data$ART_INDICATOR_2))
+
