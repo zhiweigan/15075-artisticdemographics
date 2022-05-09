@@ -73,12 +73,12 @@ library(dplyr)
 
 # Split artistic score into several categories so we can do CART and Random Forests
 dfList = lapply(dfList, function(df) {
-  df$ART_INDICATOR <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 1/11, "None",
-                             ifelse(df$ART_SCORE >= 1/11 & df$ART_SCORE < 2/11, "One",
-                                    ifelse(df$ART_SCORE >= 2/11 & df$ART_SCORE < 6/11, "Some",
-                                           ifelse(df$ART_SCORE >= 6/11, "Many", NA))))
+  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 1/11, "None",
+                                ifelse(df$ART_SCORE >= 1/11, "Many", NA))
   df
 })
+
+dfList$data_factor_no_fill
 
 # Train/Test
 set.seed(1)
@@ -87,7 +87,7 @@ train.data <- dfList$data_factor_no_fill[sample, ]
 test.data <- dfList$data_factor_no_fill[!sample, ] 
 
 # CART Model
-CART1 = rpart(ART_INDICATOR ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION4, 
+CART1 = rpart(ART_INDICATOR_2 ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION4, 
               method = "class", 
               data = train.data,
               control=rpart.control(minbucket=5, cp=0.003814262))
@@ -103,11 +103,11 @@ plot(CART1)
 text(CART1, digits = 3)
 post(CART1)
 
-# pruned <- prune(CART1, cp=0.003814262)
+pruned <- prune(CART1, cp=0.003814262)
 
 predicted.classes <- pruned %>% predict(test.data, type = "class")
 head(predicted.classes)
-mean(predicted.classes == test.data$ART_INDICATOR)
+mean(predicted.classes == test.data$ART_INDICATOR_2)
 
 
 # install.packages("caret")
