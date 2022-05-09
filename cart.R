@@ -83,31 +83,40 @@ dfList = lapply(dfList, function(df) {
 # Train/Test
 set.seed(1)
 sample <- sample(c(TRUE, FALSE), nrow(dfList$data_factor_no_fill), replace=TRUE, prob=c(0.7,0.3))
-train <- dfList$data_factor_no_fill[sample, ]
-test <- dfList$data_factor_no_fill[!sample, ] 
+train.data <- dfList$data_factor_no_fill[sample, ]
+test.data <- dfList$data_factor_no_fill[!sample, ] 
 
 # CART Model
 CART1 = rpart(ART_INDICATOR ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION4, 
               method = "class", 
-              data = train, 
-              control=rpart.control(minbucket=2, cp=0.003))
+              data = train.data,
+              control=rpart.control(minbucket=5, cp=0.003814262))
+
+CART1$cptable[which.min(CART1$cptable[,"xerror"]),"CP"]
 
 printcp(CART1)
 # par(xpd = NA) # Avoid clipping the text in some device
 # plotcp(CART1)
-# summary(CART1)
-# prp(CART1, type = 2, extra = 2)
+summary(CART1)
+prp(CART1, type = 2, extra = 2)
 plot(CART1)
 text(CART1, digits = 3)
+post(CART1)
 
-predicted.classes <- CART1 %>% predict(test, type = "class")
+# pruned <- prune(CART1, cp=0.003814262)
+
+predicted.classes <- pruned %>% predict(test.data, type = "class")
 head(predicted.classes)
-mean(predicted.classes == test$ART_INDICATOR)
+mean(predicted.classes == test.data$ART_INDICATOR)
 
-set.seed(123)
-CART2 <- train(
-  ART_INDICATOR ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION, 
-  data = train, method = "rpart",
-  trControl = trainControl("cv", number = 10),
-  tuneLength = 10
-)
+
+# install.packages("caret")
+# library(caret)
+# 
+# set.seed(123)
+# CART2 <- train(
+#   ART_INDICATOR ~., 
+#   data = train.data, method = "rpart",
+#   trControl = trainControl("cv", number = 10),
+#   tuneLength = 10
+# )
