@@ -73,8 +73,8 @@ library(dplyr)
 
 # Split artistic score into several categories so we can do CART and Random Forests
 dfList = lapply(dfList, function(df) {
-  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 3/11, "None",
-                                ifelse(df$ART_SCORE >= 3/11, "Many", NA))
+  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 3/11, "Less",
+                                ifelse(df$ART_SCORE >= 3/11, "More", NA))
   df
 })
 
@@ -82,12 +82,25 @@ dfList$data_factor_no_fill
 
 # Train/Test
 set.seed(1)
-sample <- sample(c(TRUE, FALSE), nrow(dfList$data_factor_no_fill), replace=TRUE, prob=c(0.7,0.3))
-train.data <- dfList$data_factor_no_fill[sample, ]
-test.data <- dfList$data_factor_no_fill[!sample, ] 
+as.numeric(dfList$data_factor_na_is_no[, "GENDER"])
+
+for(col in demographics) {
+  dfList$data_factor_na_is_no[, col] = as.numeric(dfList$data_factor_na_is_no[, col])
+}
+
+sample <- sample(c(TRUE, FALSE), nrow(dfList$data_factor_na_is_no), replace=TRUE, prob=c(0.7,0.3))
+train.data <- dfList$data_factor_na_is_no[sample, ]
+test.data <- dfList$data_factor_na_is_no[!sample, ] 
 
 # CART Model
-CART1 = rpart(ART_INDICATOR_2 ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION4, 
+CART1 = rpart(ART_INDICATOR_2 ~ 
+                SURV_LANG + 
+                GENDER + 
+                AGE7 + 
+                INCOME + 
+                INTERNET +
+                EDUC4 + 
+                REGION4, 
               method = "class", 
               data = train.data,
               control=rpart.control(minsplits = 2, minbucket=5, cp=0.003814262))
@@ -99,7 +112,7 @@ printcp(CART1)
 # plotcp(CART1)
 summary(CART1)
 prp(CART1, type = 2, extra = 2)
-plot(CART1)
+rpart.plot(CART1)
 text(CART1, digits = 3)
 post(CART1)
 
@@ -120,6 +133,9 @@ test.data$ART_INDICATOR = as.factor(test.data$ART_INDICATOR)
 summary(test.data$ART_INDICATOR)
 
 
+cor(as.numeric(dfList$data_factor_na_is_no$AGE7), as.numeric(dfList$data_factor_na_is_no$EDUC4))
+
+
 # install.packages("caret")
 # library(caret)
 # 
@@ -130,3 +146,12 @@ summary(test.data$ART_INDICATOR)
 #   trControl = trainControl("cv", number = 10),
 #   tuneLength = 10
 # )
+
+# Random Forest
+# install.packages("randomForest")
+library(randomForest)
+set.seed(0)
+fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=dfList$data_factor_na_is_no)
+print(fit) # view results
+importance(fit) # importance of each 
+plot(fit)

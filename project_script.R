@@ -63,6 +63,18 @@ dfList = lapply(dfList, function(df) {
   df
 })
 
+# Split artistic score into several categories so we can do CART and Random Forests
+dfList = lapply(dfList, function(df) {
+  df$ART_INDICATOR <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 1/11, "None",
+                             ifelse(df$ART_SCORE >= 1/11 & df$ART_SCORE < 2/11, "One",
+                                    ifelse(df$ART_SCORE >= 2/11 & df$ART_SCORE < 6/11, "Some",
+                                           ifelse(df$ART_SCORE >= 6/11, "Many", NA))))
+  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 3/11, "Less",
+                               ifelse(df$ART_SCORE >= 3/11, "More", NA))
+  df
+})
+
+
 # Ananya's CV Model
 y <- dfList$data_factor_na_is_no$ART_SCORE
 x <- data.matrix(dfList$data_factor_na_is_no[, demographics])
@@ -99,10 +111,10 @@ str(train)
 
 library(pROC)
 #fit logistic regression model
-model <- glm(ART_INDICATOR_2 ~ (SURV_LANG + GENDER + AGE7 + EDUC4)^2, family="binomial", data=train)
+model <- glm(ART_INDICATOR ~ (SURV_LANG + GENDER + AGE7 + EDUC4)^2, family="binomial", data=train)
 summary(model)
 predicted <- predict(model, test, type="response")
-auc(test$ART_INDICATOR_2, predicted)
+auc(test$ART_INDICATOR, predicted)
 
 #fit a linear regression with the same data points
 lm_data = lm(ART_SCORE ~ (SURV_LANG + GENDER + AGE7 + EDUC4)^2, data=data)
@@ -255,15 +267,6 @@ ggplot(dfList$data_factor_knn_impute) +
   ylab("Relative Frequency") +
   ggtitle("Artistic Score KNN Impute Histogram") + 
   scale_x_continuous(breaks = 0:10)
-
-# Split artistic score into several categories so we can do CART and Random Forests
-dfList = lapply(dfList, function(df) {
-  df$ART_INDICATOR <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 1/11, "None",
-                        ifelse(df$ART_SCORE >= 1/11 & df$ART_SCORE < 2/11, "One",
-                           ifelse(df$ART_SCORE >= 2/11 & df$ART_SCORE < 6/11, "Some",
-                              ifelse(df$ART_SCORE >= 6/11, "Many", NA))))
-  df
-})
 
 library(rpart)
 library(rpart.plot)
