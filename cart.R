@@ -73,8 +73,8 @@ library(dplyr)
 
 # Split artistic score into several categories so we can do CART and Random Forests
 dfList = lapply(dfList, function(df) {
-  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 1/11, "None",
-                                ifelse(df$ART_SCORE >= 1/11, "Many", NA))
+  df$ART_INDICATOR_2 <- ifelse(df$ART_SCORE >= 0 & df$ART_SCORE < 3/11, "None",
+                                ifelse(df$ART_SCORE >= 3/11, "Many", NA))
   df
 })
 
@@ -90,7 +90,7 @@ test.data <- dfList$data_factor_no_fill[!sample, ]
 CART1 = rpart(ART_INDICATOR_2 ~ SURV_LANG + GENDER + AGE7 + INCOME + INTERNET + EDUC4 + REGION4, 
               method = "class", 
               data = train.data,
-              control=rpart.control(minbucket=5, cp=0.003814262))
+              control=rpart.control(minsplits = 2, minbucket=5, cp=0.003814262))
 
 CART1$cptable[which.min(CART1$cptable[,"xerror"]),"CP"]
 
@@ -108,6 +108,16 @@ pruned <- prune(CART1, cp=0.003814262)
 predicted.classes <- pruned %>% predict(test.data, type = "class")
 head(predicted.classes)
 mean(predicted.classes == test.data$ART_INDICATOR_2)
+
+table(predicted.classes, test.data$ART_INDICATOR_2)
+retrieved = 279 + 38
+precision = 279 / retrieved
+recall = 279 / (279 + 327)
+Fmeasure = 2 * precision * recall / (precision + recall)
+Fmeasure
+
+test.data$ART_INDICATOR = as.factor(test.data$ART_INDICATOR)
+summary(test.data$ART_INDICATOR)
 
 
 # install.packages("caret")
