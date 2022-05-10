@@ -27,6 +27,8 @@ data_factor_no_fill = da37853.0001[c(demographics, artistic)]
 all_na = apply(data_factor_no_fill[artistic], 1, function(x) all(is.na(x)))
 data_factor_no_fill = data_factor_no_fill[!all_na, ]
 
+data_factor_no_fill
+
 # What are the types of each column?
 str(data_factor_no_fill)
 

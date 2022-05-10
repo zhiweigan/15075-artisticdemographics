@@ -156,7 +156,8 @@ cor(as.numeric(dfList$data_factor_na_is_no$AGE7), as.numeric(dfList$data_factor_
 # install.packages("randomForest")
 library(randomForest)
 set.seed(0)
-fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=train.data)
+fit <- randomForest(as.factor(ART_INDICATOR_2) ~ SURV_LANG + GENDER + AGE7 + EDUC4, data=train.data,
+                    ntree=5000)
 print(fit) # view results
 imp = importance(fit)
 str(imp)
@@ -168,20 +169,29 @@ feat_imp_df <- importance(fit) %>%
 
 # plot dataframe
 library(ggplot2)
+# install.packages("RColorBrewer")
+library("RColorBrewer") 
 ggplot(feat_imp_df, aes(x = reorder(feature, MeanDecreaseGini), 
                         y = MeanDecreaseGini)) +
-  geom_bar(stat='identity') +
+  geom_bar(stat='identity', 
+           mapping = aes(x = reorder(feature, MeanDecreaseGini), 
+                         fill = reorder(feature, MeanDecreaseGini))) + 
+  scale_colour_brewer(palette = "Set2") + 
   coord_flip() +
   theme_classic() +
+  theme(legend.position="none", axis.text=element_text(size=14),  axis.title = element_text(size = 14), title=element_text(size=18)) +
   scale_x_discrete(labels= c("Age", "Gender", "Education", "Survey Language")) + 
   labs(
-    x     = "Feature",
-    y     = "Importance",
+    x     = "Features",
+    y     = "Importance (%)",
     title = "Feature Importance: Random Forest on Artistic Indicators"
   )
 
+
 barplot(importance(fit), ) # importance of each 
 plot(fit,  main="Random Forest Model Error")
+
+summary(fit)
 
 
 # install.packages("caret")
